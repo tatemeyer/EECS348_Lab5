@@ -1,0 +1,3 @@
+- create makefile for SalesReport.c
+- complete the second half of the lab (Matrix.C)
+- create makefile for Matrix.c 
