@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-double monthly_sales_report(double sales[12], const char *months[12]) {
+void monthly_sales_report(double sales[12], const char *months[12]) {
     FILE *fptr;
     fptr = fopen("sales.txt", "r");
   
@@ -18,34 +18,36 @@ double monthly_sales_report(double sales[12], const char *months[12]) {
     }
     fclose(fptr);
     printf("Monthly Sales Report:\n");
-    printf("Month\t\tSales\n");
+    printf("%-15s%10s\n", "Month", "Sales");
     for (int i = 0; i < 12; i++) {
         printf("%-15s%10.2f\n", months[i], sales[i]);
     }
-    return sales[12];
 }
 
-void sales_summary_report(double sales[12]) {
+void sales_summary_report(double sales[12], const char *months[12]) {
     double min_sales = sales[0];
     double max_sales = sales[0];
     double total_sales = 0;
     double average_sales;
+    int min_idx = 0, max_idx = 0;
 
     for (int i = 0; i < 12; i++) {
         if (sales[i] < min_sales) {
             min_sales = sales[i];
+            min_idx = i;
         }
         if (sales[i] > max_sales) {
             max_sales = sales[i];
+            max_idx = i;
         }
         total_sales += sales[i];
     }
     average_sales = total_sales / 12;
 
     printf("\nSales Summary Report:\n");
-    printf("Minimum Sales: %.2f\n", min_sales);
-    printf("Maximum Sales: %.2f\n", max_sales);
-    printf("Average Sales: %.2f\n", average_sales);
+    printf("Minimum sales: %.2f (%s)\n", min_sales, months[min_idx]);
+    printf("Maximum sales: %.2f (%s)\n", max_sales, months[max_idx]);
+    printf("Average sales: %.2f\n", average_sales);
 }
 
 void moving_average_report(double sales[12], const char *months[12]) {
@@ -53,17 +55,19 @@ void moving_average_report(double sales[12], const char *months[12]) {
     double sum = 0.0;
 
     for (int i = 0; i < 6; ++i) sum += sales[i];   // initial window Jan-Jun
-    avg[0] = sum / 6.0;
+    avg[0] = (double)(long long)(sum / 6.0 * 100 + 0.5) / 100.0;
 
     for (int w = 1; w <= 6; ++w) {                  // windows 1..6 (Feb-Jul .. Jul-Dec)
         sum += sales[w + 5] - sales[w - 1];         // add new month, subtract leaving month
-        avg[w] = sum / 6.0;
+        avg[w] = (double)(long long)(sum / 6.0 * 100 + 0.5) / 100.0;
     }
 
-    printf("\nSix-Month Moving Average Report:\n");
-    printf("Months\t\t\tAverage Sales\n");
+    printf("\nSix-Month moving average report:\n");
+    printf("%-25s%s\n", "Months", "Average Sales");
     for (int w = 0; w <= 6; ++w) {
-        printf("%s-%s\t\t%.2f\n", months[w], months[w + 5], avg[w]);
+        char label[32];
+        snprintf(label, sizeof(label), "%s-%s", months[w], months[w + 5]);
+        printf("%-25s%.2f\n", label, avg[w]);
     }
 }
 
@@ -86,10 +90,10 @@ void sorted_sales_report(double sales[12], const char *months[12]) {
             }
         }
     }
-    printf("\nSales Report (Highest to Lowest):\n");
-    printf("Month\t\tSales\n");
+    printf("\nSales report (highest to lowest):\n");
+    printf("%-15s%10s\n", "Month", "Sales");
     for (int i = 0; i < 12; i++) {
-        printf("%-15s%10.2f\n", sorted_months[i], sorted_sales[i]);
+        printf("%-15s$%9.2f\n", sorted_months[i], sorted_sales[i]);
     }
 }
 
@@ -99,7 +103,7 @@ int main() {
     const char *months[12] = {"January", "February", "March", "April", "May", "June",
                               "July", "August", "September", "October", "November", "December"};
     monthly_sales_report(sales, months);
-    sales_summary_report(sales);
+    sales_summary_report(sales, months);
     moving_average_report(sales, months);
     sorted_sales_report(sales, months);
     return 0;
